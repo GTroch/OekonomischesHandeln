@@ -1,0 +1,964 @@
+<title>Ökonomisches Handeln</title>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f7f5ef; --bg-alt:#eef1ea; --surface:#ffffff; --surface-alt:#eef4ef;
+    --ink:#16241f; --ink-2:#4b5851; --ink-mute:#7c887f;
+    --accent:#1f5c4a; --accent-strong:#153d31; --accent-soft:#e3efe8;
+    --amber:#a3740f; --amber-strong:#7a5709; --amber-soft:#fbf1da;
+    --border:#dfe1d8; --border-strong:#c7cec4;
+    --chip-arbeit-bg:#dfe9e3; --chip-arbeit-fg:#1c4a3c;
+    --chip-disk-bg:#f4e6c8; --chip-disk-fg:#7a5709;
+    --shadow:0 1px 2px rgba(22,36,31,.06), 0 8px 24px rgba(22,36,31,.06);
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#0f1713; --bg-alt:#131b17; --surface:#171f1a; --surface-alt:#1b2621;
+      --ink:#edf2ee; --ink-2:#b7c2bb; --ink-mute:#84907f;
+      --accent:#57b592; --accent-strong:#82d8b8; --accent-soft:#1c352c;
+      --amber:#e3bb5e; --amber-strong:#f0d38c; --amber-soft:#2c2415;
+      --border:#28322b; --border-strong:#37423a;
+      --chip-arbeit-bg:#1c352c; --chip-arbeit-fg:#8fd7bb;
+      --chip-disk-bg:#332a14; --chip-disk-fg:#e3bb5e;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#0f1713; --bg-alt:#131b17; --surface:#171f1a; --surface-alt:#1b2621;
+    --ink:#edf2ee; --ink-2:#b7c2bb; --ink-mute:#84907f;
+    --accent:#57b592; --accent-strong:#82d8b8; --accent-soft:#1c352c;
+    --amber:#e3bb5e; --amber-strong:#f0d38c; --amber-soft:#2c2415;
+    --border:#28322b; --border-strong:#37423a;
+    --chip-arbeit-bg:#1c352c; --chip-arbeit-fg:#8fd7bb;
+    --chip-disk-bg:#332a14; --chip-disk-fg:#e3bb5e;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink);}
+  h1,h2,h3,.display{font-family:"Fraunces",Georgia,"Times New Roman",serif; text-wrap:balance;}
+  body,input,button{font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;}
+
+  a{color:inherit;}
+  button{font:inherit; cursor:pointer;}
+
+  .app{display:flex; min-height:100%; max-width:1400px; margin:0 auto;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    background:var(--bg); border-bottom:1px solid var(--border);
+    padding:14px 20px; display:flex; align-items:center; gap:14px;
+  }
+  .topbar .brand{display:flex; align-items:baseline; gap:10px; flex:1; min-width:0;}
+  .topbar .brand .eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-mute); white-space:nowrap;}
+  .topbar h1{font-size:19px; margin:0; font-weight:600; color:var(--accent-strong); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .progress-wrap{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .progress-track{width:96px; height:6px; border-radius:3px; background:var(--border); overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); border-radius:3px; transition:width .3s ease;}
+  .progress-label{font-size:12px; color:var(--ink-2); white-space:nowrap;}
+  .menu-btn{display:none; border:1px solid var(--border); background:var(--surface); border-radius:8px; padding:8px 10px; color:var(--ink);}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:300px; flex-shrink:0; border-right:1px solid var(--border);
+    padding:16px 14px 40px; overflow-y:auto;
+    position:sticky; top:57px; align-self:flex-start;
+    height:calc(100vh - 57px);
+  }
+  .search{
+    width:100%; padding:9px 12px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); font-size:13.5px; margin-bottom:14px;
+  }
+  .search:focus{outline:2px solid var(--accent); outline-offset:1px;}
+  .nav-overview-btn{
+    width:100%; text-align:left; padding:9px 12px; border-radius:9px; border:1px solid transparent;
+    background:transparent; color:var(--ink-2); font-size:13.5px; font-weight:600; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .nav-overview-btn.active, .nav-overview-btn:hover{background:var(--accent-soft); color:var(--accent-strong);}
+  .block-group{margin-bottom:6px;}
+  .block-head{
+    display:flex; align-items:center; gap:8px; padding:10px 8px 6px;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-mute); font-weight:700;
+  }
+  .block-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .lesson-item{
+    display:flex; align-items:flex-start; gap:9px; width:100%; text-align:left;
+    padding:8px 8px; border-radius:9px; border:1px solid transparent; background:transparent;
+    color:var(--ink); margin-bottom:2px;
+  }
+  .lesson-item:hover{background:var(--surface-alt);}
+  .lesson-item.active{background:var(--accent-soft); border-color:var(--border-strong);}
+  .lesson-nr{
+    font-family:"JetBrains Mono",monospace; font-size:11.5px; color:var(--ink-mute);
+    width:20px; flex-shrink:0; padding-top:2px;
+  }
+  .lesson-item.active .lesson-nr{color:var(--accent-strong); font-weight:700;}
+  .lesson-title{font-size:13.5px; line-height:1.35; flex:1;}
+  .lesson-check{
+    width:16px; height:16px; border-radius:5px; border:1.5px solid var(--border-strong);
+    flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center;
+    background:var(--surface);
+  }
+  .lesson-check.done{background:var(--accent); border-color:var(--accent);}
+  .lesson-check.done::after{content:"✓"; color:#fff; font-size:11px; line-height:1;}
+  .lesson-item.done .lesson-title{color:var(--ink-mute); text-decoration:line-through; text-decoration-color:var(--border-strong);}
+
+  /* ---------- Main ---------- */
+  .main{flex:1; min-width:0; padding:28px 34px 80px;}
+  .hero{margin-bottom:30px;}
+  .hero .eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--amber); font-weight:700; margin-bottom:10px;}
+  .hero h1{font-size:clamp(28px,4vw,42px); margin:0 0 12px; color:var(--accent-strong); font-weight:600;}
+  .hero p.lead{font-size:16px; color:var(--ink-2); max-width:66ch; line-height:1.6; margin:0 0 4px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:18px; font-size:13px; color:var(--ink-2);}
+  .meta-row div{display:flex; gap:6px;}
+  .meta-row b{color:var(--ink); font-weight:600;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:22px 24px; box-shadow:var(--shadow); margin-bottom:20px;
+  }
+  .card h2{font-size:17px; margin:0 0 14px; color:var(--accent-strong); font-weight:600;}
+  .card ul{margin:0; padding-left:20px; color:var(--ink-2); font-size:14.5px; line-height:1.65;}
+  .card ul li{margin-bottom:8px;}
+  .card ul li b{color:var(--ink);}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:760px){.grid-2{grid-template-columns:1fr;}}
+
+  .structure-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .structure-item{
+    flex:1; min-width:180px; background:var(--surface-alt); border:1px solid var(--border);
+    border-radius:12px; padding:16px;
+  }
+  .structure-item .num{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--accent); font-weight:700;}
+  .structure-item h3{font-size:14.5px; margin:6px 0 6px; color:var(--ink); font-weight:700;}
+  .structure-item p{font-size:13px; color:var(--ink-2); margin:0; line-height:1.5;}
+
+  /* chart */
+  .chart-bar{display:flex; width:100%; height:34px; border-radius:8px; overflow:hidden; border:1px solid var(--border); margin-bottom:4px;}
+  .chart-seg{display:flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-size:12px; color:#fff; font-weight:700; position:relative;}
+  .chart-seg + .chart-seg{border-left:2px solid var(--bg);}
+  .legend-row{display:flex; flex-wrap:wrap; gap:14px; margin-top:14px;}
+  .legend-item{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-2);}
+  .legend-swatch{width:10px; height:10px; border-radius:3px; flex-shrink:0;}
+
+  /* lesson detail */
+  .lesson-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px;}
+  .lesson-head-left .block-tag{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mute); font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+  .lesson-head h1{font-size:clamp(22px,3.2vw,30px); margin:0; color:var(--accent-strong); font-weight:600; line-height:1.2;}
+  .badge{display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; font-size:12.5px; font-weight:700;}
+  .badge.arbeit{background:var(--chip-arbeit-bg); color:var(--chip-arbeit-fg);}
+  .badge.disk{background:var(--chip-disk-bg); color:var(--chip-disk-fg);}
+  .time-chips{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .time-chip{
+    font-family:"JetBrains Mono",monospace; font-size:12px; padding:6px 10px; border-radius:8px;
+    background:var(--surface-alt); border:1px solid var(--border); color:var(--ink-2);
+  }
+
+  .info-card{display:grid; grid-template-columns:170px 1fr; gap:10px 18px; font-size:14px;}
+  .info-card dt{color:var(--accent); font-weight:700; font-size:12.5px; text-transform:uppercase; letter-spacing:.03em; padding-top:2px;}
+  .info-card dd{margin:0; color:var(--ink); line-height:1.55;}
+  @media (max-width:600px){.info-card{grid-template-columns:1fr;} .info-card dt{padding-top:10px;}}
+
+  .flow{display:flex; flex-direction:column; gap:0; margin-top:4px;}
+  .flow-step{display:flex; gap:16px; position:relative; padding-bottom:26px;}
+  .flow-step:last-child{padding-bottom:0;}
+  .flow-rail{display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:38px;}
+  .flow-dot{width:38px; height:38px; border-radius:50%; background:var(--accent-soft); color:var(--accent-strong); display:flex; align-items:center; justify-content:center; font-family:"JetBrains Mono",monospace; font-weight:700; font-size:12px; border:1px solid var(--border-strong);}
+  .flow-line{flex:1; width:2px; background:var(--border); margin:4px 0;}
+  .flow-body{flex:1; padding-top:4px;}
+  .flow-body h3{margin:0 0 6px; font-size:15.5px; color:var(--ink); font-weight:700;}
+  .flow-body .flow-meta{font-size:12px; color:var(--ink-mute); margin-bottom:8px; font-family:"JetBrains Mono",monospace;}
+  .flow-body p{margin:0; font-size:14.5px; line-height:1.65; color:var(--ink-2);}
+
+  .tafelbild-wrap{background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; padding:20px; margin-top:8px;}
+  .tafelbild-title{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-mute); font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+  .tafel-boxes{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+  .tafel-box{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px 14px;}
+  .tafel-box h4{margin:0 0 8px; font-size:13.5px; color:var(--accent-strong); font-weight:700;}
+  .tafel-box ul{margin:0; padding-left:16px; font-size:13px; color:var(--ink-2); line-height:1.55;}
+  .tafel-box ul li{margin-bottom:4px;}
+  .merksatz{
+    margin-top:14px; background:var(--amber-soft); border-left:4px solid var(--amber);
+    border-radius:0 8px 8px 0; padding:12px 16px; font-size:13.5px; color:var(--amber-strong); font-style:italic; line-height:1.55;
+  }
+  .merksatz b{font-style:normal;}
+
+  .material-list{display:flex; flex-direction:column; gap:6px; margin-top:2px;}
+  .material-item{display:flex; gap:9px; align-items:flex-start; font-size:13.5px; color:var(--ink-2); line-height:1.5;}
+  .material-item svg{flex-shrink:0; margin-top:3px; color:var(--ink-mute);}
+
+  .hw{margin-top:20px; padding:14px 16px; border:1px dashed var(--border-strong); border-radius:10px; font-size:13.5px; color:var(--ink-2);}
+  .hw b{color:var(--ink);}
+
+  .pager{display:flex; justify-content:space-between; gap:12px; margin-top:30px;}
+  .pager button{
+    flex:1; max-width:280px; padding:12px 16px; border-radius:12px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); font-size:13.5px; text-align:left; box-shadow:var(--shadow);
+  }
+  .pager button:hover{border-color:var(--accent);}
+  .pager button:disabled{opacity:.35; pointer-events:none;}
+  .pager .lbl{font-size:11px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+  .pager .next{text-align:right; margin-left:auto;}
+
+  .taught-toggle{
+    display:inline-flex; align-items:center; gap:8px; padding:9px 15px; border-radius:10px;
+    border:1px solid var(--border-strong); background:var(--surface); font-size:13px; font-weight:600; color:var(--ink-2);
+  }
+  .taught-toggle.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+
+  [hidden]{display:none !important;}
+
+  @media (max-width:520px){
+    .topbar .eyebrow{display:none;}
+    .topbar h1{font-size:15.5px;}
+    .progress-track{width:54px;}
+    .progress-label{font-size:11px;}
+    .topbar{padding:12px 14px; gap:10px;}
+  }
+  @media (max-width:880px){
+    .menu-btn{display:inline-flex; align-items:center; gap:6px;}
+    .sidebar{
+      position:fixed; top:57px; left:0; bottom:0; z-index:30; background:var(--bg);
+      transform:translateX(-100%); transition:transform .22s ease; box-shadow:0 0 0 100vmax rgba(0,0,0,0); width:82vw; max-width:340px;
+    }
+    .sidebar.open{transform:translateX(0); box-shadow:20px 0 40px rgba(0,0,0,.15);}
+    .main{padding:22px 18px 70px;}
+    .info-card{font-size:13.5px;}
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<div class="app">
+  <div class="sidebar" id="sidebar">
+    <input class="search" id="search" type="text" placeholder="Stunde oder Stichwort suchen …" />
+    <button class="nav-overview-btn" id="overviewBtn">◧&nbsp; Übersicht &amp; Kompetenzen</button>
+    <div id="navList"></div>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+
+<script type="application/json" id="lessons-data">
+{
+  "kurs": {
+    "fach": "Wirtschaft und Recht",
+    "jahrgangsstufe": "10 (HG, SG, NTG, MuG, SWG)",
+    "lernbereich": "WR10 Lernbereich 1: Ökonomisches Handeln auf dem Markt (ca. 18 Std.)",
+    "grundlage": "LehrplanPLUS Gymnasium, Wirtschaft und Recht 10 – Fachlehrplan (Bayern)",
+    "ordner": "E:\\Unterrichtsvorbereitung\\10.Klasse WR NAT\\01 Ökonomisches Handeln auf dem Markt",
+    "kompetenzerwartungen": [
+      "Die SuS treffen reflektierte Verbraucherentscheidungen in ökonomischen Knappheitssituationen mit Blick auf persönliche Anreizsysteme und das Prinzip der Nachhaltigkeit. Dabei berücksichtigen sie auch den Einfluss von Werbung, verkaufspsychologischen Maßnahmen sowie verhaltensökonomischer Effekte auf ihr Verbraucherverhalten.",
+      "Die SuS wählen geeignete Zahlungsarten situationsbezogen aus.",
+      "Die SuS treffen reflektierte Anlageentscheidungen. Dabei berücksichtigen sie grundlegende Kriterien der Geldanlage sowie die Bedeutung der Geldwertstabilität vor dem Hintergrund der Funktionen des Geldes.",
+      "Die SuS wenden das Marktmodell auf konkrete Beispiele an, um die Koordinationsfunktion von Märkten darzustellen. Dabei kontrastieren sie Prämissen des Marktmodells mit der Realität."
+    ],
+    "bloecke": [
+      {"id": "A", "titel": "Verbraucherentscheidungen in der Knappheit", "stunden": "1–7"},
+      {"id": "B", "titel": "Zahlungsverkehr und private Verschuldung", "stunden": "8–11"},
+      {"id": "C", "titel": "Geldanlage", "stunden": "12–14"},
+      {"id": "D", "titel": "Das Marktmodell", "stunden": "15–18"}
+    ]
+  },
+  "stunden": [
+    {
+      "nr": 1, "block": "A",
+      "titel": "Wirtschaften und Knappheit – Bedürfnisse, Güter und das ökonomische Prinzip",
+      "kompetenzbezug": "Kompetenzerwartung 1 – reflektierte Verbraucherentscheidungen in ökonomischen Knappheitssituationen",
+      "lehrplan_inhalte": ["Knappheit, Bedürfnisse", "Wirtschaftlichkeitsprinzip"],
+      "lernziel": "Die SuS erklären, warum wirtschaftliches Handeln notwendig ist, indem sie das Spannungsverhältnis zwischen unbegrenzten Bedürfnissen und begrenzten Mitteln (Güterknappheit) an eigenen Beispielen erläutern und das ökonomische Prinzip (Maximum-/Minimumprinzip) definieren und anwenden.",
+      "material": ["Arbeitsblatt_Notwendigkeit_des_Wirtschaftens.pdf (Ordner „01 Wirtschaftliches Handeln“)", "Tafelbild_Notwendigkeit_des_Wirtschaftens.pdf (als Vorlage/Vergleich)", "Warum_muessen_wir_wirtschaften.pptx"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Partnerarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Die Lehrkraft legt einen 20-Euro-Schein auf das Pult und fragt: „Wer von euch hätte gerne diesen Schein – und wofür würdet ihr ihn ausgeben?“ Die Wünsche werden in einer kurzen Zuruf-Abfrage an der Tafel gesammelt (typischerweise deutlich mehr Wünsche als der Schein „erfüllen“ könnte). Überleitung: Jeder hat unterschiedliche, im Grunde unbegrenzte Wünsche – aber die Mittel reichen nie für alles. Leitfrage für die Stunde: „Was bedeutet es, dass Güter knapp sind – und wie gehen wir sinnvoll damit um?“",
+      "erarbeitung": "Die SuS bearbeiten in Partnerarbeit das Arbeitsblatt „Notwendigkeit des Wirtschaftens“: (1) Sie ordnen die dort genannten bzw. selbst ergänzten Bedürfnisse den Kategorien Existenzbedürfnisse, Grundbedürfnisse, Kulturbedürfnisse und Luxusbedürfnisse zu. (2) Sie unterscheiden anhand von Alltagsbeispielen freie Güter (z. B. Luft, Meerwasser am Strand) von wirtschaftlichen (knappen) Gütern. (3) Sie formulieren in eigenen Worten, was das ökonomische Prinzip besagt, und unterscheiden Maximumprinzip (mit gegebenen Mitteln den größtmöglichen Erfolg erzielen) und Minimumprinzip (ein gegebenes Ziel mit möglichst geringem Mitteleinsatz erreichen) anhand von zwei selbst gewählten Beispielen aus ihrem Alltag (z. B. Taschengeld, Lernzeit, Freizeit).",
+      "tafelbild": {
+        "titel": "Wirtschaften – warum eigentlich?",
+        "boxen": [
+          {"ueberschrift": "Das Grundproblem", "punkte": ["Bedürfnisse: unbegrenzt", "Güter/Mittel: begrenzt (knapp)", "→ Knappheit macht Wirtschaften notwendig"]},
+          {"ueberschrift": "Bedürfnispyramide", "punkte": ["Existenzbedürfnisse", "Grundbedürfnisse", "Kulturbedürfnisse", "Luxusbedürfnisse"]},
+          {"ueberschrift": "Ökonomisches Prinzip", "punkte": ["Maximumprinzip: gegebene Mittel → größtmöglicher Erfolg", "Minimumprinzip: gegebenes Ziel → geringstmöglicher Mitteleinsatz"]}
+        ],
+        "merksatz": "Wirtschaften bedeutet, mit knappen Mitteln möglichst viele Bedürfnisse zu befriedigen."
+      },
+      "hausaufgabe": "Notiert je ein eigenes Beispiel für Maximum- und Minimumprinzip aus eurem Alltag."
+    },
+    {
+      "nr": 2, "block": "A",
+      "titel": "Opportunitätskosten und die Kosten-Nutzen-Analyse als Entscheidungshilfe",
+      "kompetenzbezug": "Kompetenzerwartung 1 – reflektierte Verbraucherentscheidungen in Knappheitssituationen",
+      "lehrplan_inhalte": ["Opportunitätskosten", "Kosten-Nutzen-Analyse"],
+      "lernziel": "Die SuS wenden den Begriff der Opportunitätskosten auf eigene Entscheidungssituationen an und nutzen eine gewichtete Entscheidungsmatrix (Kosten-Nutzen-Analyse), um eine begründete Wahl zwischen Alternativen zu treffen.",
+      "material": ["Entscheidungsmatrix.png (Ordner „Homo Oeconomicus u. Verhaltensökonomie“)", "Gewichtete Entscheidungsmatrix.docx / .xlsx", "EntscheidungsmatrixJobauswahl.xlsx"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Einzel-/Gruppenarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Die Lehrkraft stellt ein Szenario an der Tafel vor: „Du hast einen freien Samstagnachmittag. Du könntest (a) jobben und 40 € verdienen, (b) mit Freunden ins Kino gehen oder (c) für die nächste Schulaufgabe lernen.“ In einem kurzen Blitzlicht nennen die SuS ihre Entscheidung und was sie dabei „aufgeben“. Einführung des Begriffs Opportunitätskosten als „Kosten der nächstbesten, nicht gewählten Alternative“.",
+      "erarbeitung": "(1) Die SuS bestimmen für drei vorgegebene Alltagsentscheidungen (z. B. Ausbildung vs. Studium, Auto vs. ÖPNV, Nebenjob vs. Freizeit) jeweils die Opportunitätskosten. (2) In Kleingruppen wenden sie die „Gewichtete Entscheidungsmatrix“ auf eine eigene Entscheidungssituation an (z. B. Wahl eines Nebenjobs, einer Freizeitaktivität oder eines Anschaffungsobjekts): Sie legen drei bis vier eigene Kriterien fest, gewichten diese (1–3), bewerten zwei bis drei Alternativen, berechnen die gewichteten Punktzahlen und begründen ihre Entscheidung datenbasiert vor der Klasse.",
+      "tafelbild": {
+        "titel": "Klug entscheiden",
+        "boxen": [
+          {"ueberschrift": "Opportunitätskosten", "punkte": ["Kosten der nächstbesten, nicht gewählten Alternative", "Entscheidung für A = Verzicht auf den Nutzen von B"]},
+          {"ueberschrift": "Kosten-Nutzen-Analyse – Schritte", "punkte": ["1. Alternativen sammeln", "2. Kriterien festlegen", "3. Kriterien gewichten", "4. Alternativen bewerten", "5. Punkte summieren", "6. Entscheiden"]},
+          {"ueberschrift": "Beispielmatrix", "punkte": ["Kriterium | Gewicht | Alt. A | Alt. B", "(vereinfachte Tabelle aus der Gruppenarbeit übertragen)"]}
+        ],
+        "merksatz": "Jede Entscheidung hat einen Preis – auch wenn kein Geld fließt."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 3, "block": "A",
+      "titel": "Der Homo oeconomicus und die Grenzen der Rationalität",
+      "kompetenzbezug": "Kompetenzerwartung 1 – Einfluss verhaltensökonomischer Effekte auf das Verbraucherverhalten",
+      "lehrplan_inhalte": ["Verhaltensökonomische Effekte"],
+      "lernziel": "Die SuS beschreiben das Modell des homo oeconomicus und grenzen es anhand eigener Spielerfahrungen (Ultimatumspiel, Endowment-Effekt) von real beobachtbarem, verhaltensökonomisch geprägtem Entscheidungsverhalten ab.",
+      "material": ["Homo oeconomicus.docx", "Der-Homo-Oeconomicus-Ein-Modell-des-rationalen-Menschen.pptx", "Diktatorspiel Ultimatumspiel 2Seiten.pdf", "Endowment-Effekt.docx"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Kleingruppen (4er)",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Gedankenexperiment (vorgelesen): „Ihr bekommt von einer fremden Person 10 € geschenkt, müsst sie aber mit einer zweiten Person teilen. Diese darf euer Angebot nur annehmen oder ablehnen – lehnt sie ab, bekommt keiner etwas.“ Die SuS notieren spontan, wie viel sie anbieten würden; die Werte werden per Zuruf an der Tafel gesammelt und die Verteilung sichtbar gemacht (meist deutlich mehr als 0 €, oft nahe 4–5 €).",
+      "erarbeitung": "Die Klasse führt das Diktator-/Ultimatumspiel nach der Spielanleitung in Kleingruppen mit zwei Runden (Rollentausch) durch und hält die Ergebnisse auf einem Beobachtungsbogen fest. In der anschließenden Auswertung im Plenum diskutieren die Gruppen die Leitfrage: „Warum bieten die meisten Menschen mehr an, als ein rein rational im Eigeninteresse handelnder homo oeconomicus anbieten würde?“ Vertiefend lesen die SuS den Kurztext zum Endowment-Effekt und übertragen die Erkenntnis auf eine eigene Alltagssituation (z. B. Verkauf gebrauchter Gegenstände über Kleinanzeigen).",
+      "tafelbild": {
+        "titel": "Homo oeconomicus vs. echter Mensch",
+        "boxen": [
+          {"ueberschrift": "Modell: Homo oeconomicus", "punkte": ["vollständige Informationen", "unbegrenzte Rationalität", "konsequente Nutzenmaximierung", "reines Eigeninteresse"]},
+          {"ueberschrift": "Reales Verhalten", "punkte": ["Fairnessempfinden (Ultimatumspiel)", "Besitztumseffekt (Endowment-Effekt)", "begrenzte Rationalität", "soziale Präferenzen"]}
+        ],
+        "merksatz": "Das Modell vereinfacht – Menschen entscheiden auch nach Gefühl und Fairness."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 4, "block": "A",
+      "titel": "Nudging – Sanfte Lenkung unserer Entscheidungen",
+      "kompetenzbezug": "Kompetenzerwartung 1 – Einfluss verhaltensökonomischer Effekte auf das Verbraucherverhalten",
+      "lehrplan_inhalte": ["Verhaltensökonomische Effekte (Nudging)"],
+      "lernziel": "Die SuS erklären das Konzept des Nudgings an eigenen Beispielen und bewerten in einer strukturierten Diskussion dessen Chancen und ethische Grenzen für Konsumentscheidungen.",
+      "material": ["Nudging_Material.pdf / Nudging_Material SuS.pdf", "Nudging Def Lös.docx/.pdf", "Das-Nudging-Konzept-Kleine-Stupser-fur-besseres-Verhalten.pptx", "Spielanleitung-Konsumspiel-2023.pdf"],
+      "art_erarbeitung": "Diskussion", "sozialform": "Gruppenarbeit → Plenumsdiskussion",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Bildimpuls/Beschreibung zweier klassischer Beispiele: die aufgemalte Fliege im Herrenurinal und auf Augenhöhe platziertes Obst in der Kantine. Frage an die Klasse: „Wurde hier jemand gezwungen, sich anders zu verhalten?“ – Nein, aber das Verhalten wurde beeinflusst. Einführung des Begriffs „Nudge“ (engl. „Stups“) nach dem Nudging-Material.",
+      "erarbeitung": "In 4er-Gruppen sammeln die SuS mithilfe des Materials mindestens vier reale Nudging-Beispiele (Supermarkt, Kantine, Verkehr, digitale Anwendungen) und ordnen diese den Kategorien Voreinstellungen (Defaults), soziale Normen und Sichtbarkeit/Vereinfachung zu. Anschließend moderierte Diskussion im Plenum (z. B. als Vier-Ecken-Methode: „stimme voll zu“ bis „stimme gar nicht zu“) zur Leitfrage: „Ist Nudging eine legitime Methode, um Menschen zu besserem (z. B. gesünderem, nachhaltigerem) Verhalten zu bewegen, oder ist es unzulässige Manipulation?“ Die Gruppen begründen ihre Position mit mindestens einem eigenen Beispiel.",
+      "tafelbild": {
+        "titel": "Nudging",
+        "boxen": [
+          {"ueberschrift": "Definition", "punkte": ["Ein Nudge lenkt Entscheidungen sanft in eine Richtung", "ohne Verbote oder finanzielle Anreize", "die Wahlfreiheit bleibt erhalten"]},
+          {"ueberschrift": "Typische Formen", "punkte": ["Voreinstellungen (Defaults)", "Sichtbarkeit/Platzierung", "soziale Vergleiche", "Erinnerungen"]},
+          {"ueberschrift": "Diskussionsergebnis: Pro / Contra", "punkte": ["Pro: fördert gesündere/nachhaltigere Entscheidungen", "Contra: Wer legt die „richtige“ Richtung fest?"]}
+        ],
+        "merksatz": "Nudging verändert die Entscheidungsumgebung, nicht die Optionen selbst."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 5, "block": "A",
+      "titel": "Werbetechniken erkennen – das AIDA-Modell",
+      "kompetenzbezug": "Kompetenzerwartung 1 – Einfluss von Werbung auf das Verbraucherverhalten",
+      "lehrplan_inhalte": ["Techniken der Werbung"],
+      "lernziel": "Die SuS analysieren eine Werbekampagne mithilfe des AIDA-Modells und erläutern, mit welchen gestalterischen und sprachlichen Mitteln Aufmerksamkeit, Interesse, Kaufwunsch und Handlung erzeugt werden sollen.",
+      "material": ["00Wie funktioniert EOS 2Seiten.pdf und 01EOS-Einführung 2 Seiten.pdf (Ordner „Werbung“)", "Werbeslogans_Material.pdf", "bekannteste Werbeslogans.docx"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Partnerarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Mehrere bekannte Werbeslogans werden vorgelesen bzw. gezeigt (Material „Werbeslogans“); die SuS raten die zugehörige Marke. Impulsfrage: „Warum bleiben uns manche Slogans jahrelang im Kopf?“ Überleitung zur Wirkungsweise von Werbung.",
+      "erarbeitung": "Anhand des EOS-Fallbeispiels analysieren die SuS in Partnerarbeit eine Werbekampagne nach dem AIDA-Modell: Welches Element erzeugt Attention (Aufmerksamkeit)? Wie wird Interest (Interesse) geweckt? Welche Mittel erzeugen Desire (Kaufwunsch)? Welcher Call-to-Action fordert zur Action (Handlung) auf? Anschließend entwerfen die Paare in Stichpunkten eine eigene kurze Werbeidee für ein fiktives Schulprodukt (z. B. den Pausenverkauf) konsequent nach dem AIDA-Schema und stellen sie in 1–2 Sätzen vor.",
+      "tafelbild": {
+        "titel": "Das AIDA-Modell der Werbewirkung",
+        "boxen": [
+          {"ueberschrift": "A – Attention", "punkte": ["Farben, Bilder, Überraschung"]},
+          {"ueberschrift": "I – Interest", "punkte": ["Produktinformation, Storytelling"]},
+          {"ueberschrift": "D – Desire", "punkte": ["Emotionen, Statusversprechen, Testimonials"]},
+          {"ueberschrift": "A – Action", "punkte": ["Rabatt, Call-to-Action, Verknappung („nur heute“)"]}
+        ],
+        "merksatz": "Werbung folgt einer Stufenlogik – vom ersten Blick bis zum Kaufklick."
+      },
+      "hausaufgabe": "Findet zu Hause eine Werbeanzeige (Print, TV, Social Media) und ordnet sie kurz schriftlich den vier AIDA-Stufen zu."
+    },
+    {
+      "nr": 6, "block": "A",
+      "titel": "Verkaufspsychologie im Handel – Tricks im Supermarkt",
+      "kompetenzbezug": "Kompetenzerwartung 1 – Einfluss verkaufspsychologischer Maßnahmen auf das Verbraucherverhalten",
+      "lehrplan_inhalte": ["Verkaufspsychologische Maßnahmen"],
+      "lernziel": "Die SuS identifizieren verkaufsfördernde Maßnahmen im stationären Handel und bewerten in einer strukturierten Diskussion deren Wirkung auf das eigene Konsumverhalten.",
+      "material": ["Verkaufstricks_im_Supermarkt_Informationen.pdf", "Verkaufsfördernde Maßnahmen im Supermarkt.docx", "Plus-Minus-Liste_Arbeitsblatt.pdf / _Methode.pdf", "Maßnahmen auf das Verbraucherverhalten.pdf"],
+      "art_erarbeitung": "Diskussion", "sozialform": "Gruppenarbeit → moderierte Plenumsdiskussion",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Gedankliche „Supermarkt-Begehung“: Die Lehrkraft beschreibt kurz den typischen Weg durch einen Supermarkt (Obst/Blumen am Eingang, Grundnahrungsmittel im hinteren Bereich, Süßigkeiten an der Kasse). Impulsfrage: „Ist das Zufall?“ Erste Vermutungen werden gesammelt.",
+      "erarbeitung": "Die SuS lesen in Gruppen je einen Ausschnitt des Materials „Verkaufstricks im Supermarkt“ (Bückzone/Reckzone, Kassenzone, Sinnesreize wie Duft und Musik, Mengenrabatte, Eigenmarken-Platzierung) und bereiten je ein aussagekräftiges Beispiel mit Wirkung vor. In der anschließenden moderierten Diskussion im Plenum (unterstützt durch die Plus-Minus-Liste zur Strukturierung von Pro- und Contra-Argumenten) werden die Leitfragen behandelt: „Welche Maßnahme haltet ihr für am wirksamsten – und warum? Ist es legitim, dass der Handel gezielt unser Verhalten steuert? Wie können sich Konsument:innen bewusst dagegen wappnen?“",
+      "tafelbild": {
+        "titel": "Verkaufstricks im Handel",
+        "boxen": [
+          {"ueberschrift": "Raum & Warenplatzierung", "punkte": ["Eingangsbereich", "Laufwege", "Augenhöhe", "Kassenzone"]},
+          {"ueberschrift": "Sinnesreize", "punkte": ["Musik", "Duft", "Beleuchtung"]},
+          {"ueberschrift": "Preis- & Mengenstrategien", "punkte": ["Mengenrabatte", "Lockangebote", "Preisschwellen (z. B. 1,99 €)"]}
+        ],
+        "merksatz": "Wer die Tricks kennt, kann bewusster entscheiden. (Diskussionsfazit der Klasse ergänzen)"
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 7, "block": "A",
+      "titel": "Nachhaltiger Konsum – ökonomische, ökologische und soziale Kriterien",
+      "kompetenzbezug": "Kompetenzerwartung 1 – Prinzip der Nachhaltigkeit bei Verbraucherentscheidungen",
+      "lehrplan_inhalte": ["Prinzip der Nachhaltigkeit: ökonomische, ökologische und soziale Aspekte"],
+      "lernziel": "Die SuS erläutern das Drei-Säulen-Modell der Nachhaltigkeit und wenden es begründet auf eigene Konsumentscheidungen (u. a. Gütesiegel, Secondhand-Mode) an.",
+      "material": ["Nachhaltiger Konsum wie funktioniert das heute.docx/.pdf", "Gütesiegel.docx", "weg-der-gebrauchtkleidung_A2_web.pdf", "Zusatz/Vertiefung: Greenwashing_Material.pdf und Greenwashing_Tafelbild.pdf, Lieferkettengesetz_Material.pdf (für differenzierende Weiterarbeit / Hausaufgabe geeignet)"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Gruppenarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Gedanklicher Vergleich zweier T-Shirts: ein Fast-Fashion-Shirt für 3 € und ein Fair-Trade-Bio-Shirt für 25 €. Frage: „Welches würdet ihr kaufen – und warum?“ Die Argumente werden gesammelt und grob vorsortiert (Preis / Umwelt / Herstellung-Arbeitsbedingungen), ohne die Begriffe „ökonomisch/ökologisch/sozial“ vorwegzunehmen.",
+      "erarbeitung": "Mit dem Material „Nachhaltiger Konsum“ erarbeiten die SuS in Gruppen die drei Säulen der Nachhaltigkeit (ökonomisch, ökologisch, sozial) und ordnen die eingangs gesammelten Argumente den drei Säulen zu. Ergänzend untersuchen sie mithilfe des Materials „Gütesiegel“ zwei bis drei bekannte Siegel (z. B. Fairtrade, GOTS, Blauer Engel) und bewerten, welche Säule diese jeweils schwerpunktmäßig abdecken. Abschließend analysieren sie anhand von „Weg der Gebrauchtkleidung“ den Secondhand-Kreislauf als praktisches Beispiel für nachhaltigeren Konsum.",
+      "tafelbild": {
+        "titel": "Nachhaltigkeit beim Konsum",
+        "boxen": [
+          {"ueberschrift": "Ökonomisch", "punkte": ["Preis", "Langlebigkeit", "regionale Wertschöpfung"]},
+          {"ueberschrift": "Ökologisch", "punkte": ["Ressourcenverbrauch", "CO₂-Ausstoß", "Recycling/Kreislauf"]},
+          {"ueberschrift": "Sozial", "punkte": ["faire Löhne", "Arbeitsbedingungen", "keine Kinderarbeit"]},
+          {"ueberschrift": "Orientierung: Gütesiegel", "punkte": ["z. B. Fairtrade, GOTS, Blauer Engel", "Hinweis: Prüfstrenge unterscheidet sich"]}
+        ],
+        "merksatz": "Nachhaltiger Konsum wägt Preis, Umwelt und soziale Folgen gemeinsam ab."
+      },
+      "hausaufgabe": "Vertiefend (optional, differenzierend): Recherchiert mit dem Zusatzmaterial „Greenwashing“, an welchen Merkmalen man vermeintlich nachhaltige Werbeversprechen kritisch hinterfragen kann."
+    },
+    {
+      "nr": 8, "block": "B",
+      "titel": "Überschuldung – Ursachen und Folgen",
+      "kompetenzbezug": "Übergang zu Kompetenzerwartung 2 (Zahlungsarten) – Themenfeld Überschuldung",
+      "lehrplan_inhalte": ["Überschuldung"],
+      "lernziel": "Die SuS erklären typische Ursachen privater Verschuldung und beschreiben deren wirtschaftliche und soziale Folgen (u. a. Schufa-Eintrag).",
+      "material": ["Leben-auf-Pump_Gym1_Material.pdf / _Loesungen.pdf (Ordner „private Verschuldung“)", "Gründe für Verschuldung.docx", "Schufa-unterrichtsmaterial-jung-kaufkraeftig.pdf"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Partnerarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Eine kurze fiktive Fallgeschichte wird vorgelesen: „Lisa, 19, hat sich ein neues Smartphone auf Raten gekauft, dazu laufen ein Streaming-Abo, ein Fitnessstudio-Vertrag und ihr Girokonto ist regelmäßig im Dispo überzogen …“ Impulsfrage: „Wie konnte es dazu kommen – und was könnte als Nächstes passieren?“",
+      "erarbeitung": "Mit dem Material „Leben auf Pump“ analysieren die SuS in Partnerarbeit typische Ursachen der Verschuldung (u. a. Konsumkredite, Ratenkäufe, Dispokredit, Abo-Fallen, unvorhergesehene Ereignisse, mangelnde Finanzkompetenz) und ordnen diese in „selbst beeinflussbar“ und „kaum beeinflussbar“. Anschließend recherchieren sie im Schufa-Material: Was ist die Schufa, wie kommt ein Score zustande, und welche konkreten Folgen kann ein negativer Eintrag haben (z. B. bei Handyvertrag, Wohnungssuche, Kreditvergabe)? Die Ergebnisse werden in einer zweispaltigen Tabelle (Ursachen | Folgen) festgehalten.",
+      "tafelbild": {
+        "titel": "Wege in die Überschuldung",
+        "boxen": [
+          {"ueberschrift": "Ursachen", "punkte": ["Konsumkredite/Ratenkauf", "Dispokredit", "Abo-Fallen", "unvorhergesehene Ereignisse (Jobverlust, Krankheit)", "mangelnde Übersicht"]},
+          {"ueberschrift": "Folgen", "punkte": ["Mahnungen/Inkasso", "zusätzliche Zinsen/Kosten", "Schufa-Eintrag", "eingeschränkte Vertrags-/Kreditfähigkeit"]}
+        ],
+        "merksatz": "Verschuldung entsteht meist schleichend – Übersicht über Einnahmen und Ausgaben schützt davor."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 9, "block": "B",
+      "titel": "Der eigene Haushaltsplan als Werkzeug gegen Überschuldung",
+      "kompetenzbezug": "Fortsetzung Themenfeld Überschuldung (Prävention)",
+      "lehrplan_inhalte": ["Überschuldung"],
+      "lernziel": "Die SuS erstellen einen einfachen Haushaltsplan, ermitteln den finanziellen Spielraum und leiten daraus Strategien zur Vermeidung von Überschuldung ab.",
+      "material": ["Haushaltscheck.xlsx", "Schufa-Haushaltskostentabelle 1 Seite.pdf", "Schufa-Beispiele Haushaltsplan 2 Seiten.pdf"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Einzelarbeit am Fallbeispiel",
+      "zeiten": {"einstieg": 6, "erarbeitung": 24, "sicherung": 15},
+      "einstieg": "Kurzer Rückblick auf Stunde 8 im Blitzlicht: „Was war für euch die wichtigste Erkenntnis?“ Überleitungsimpuls: „Wie könnt ihr selbst verhindern, in die Schuldenfalle zu geraten?“",
+      "erarbeitung": "Mit der Vorlage „Haushaltscheck“ erstellen die SuS einzeln einen fiktiven monatlichen Haushaltsplan für eine Auszubildende/einen Berufseinsteiger anhand vorgegebener Eckdaten (Nettoeinkommen, Miete, Nebenkosten, Handyvertrag, Versicherung, Freizeit, Sparrate). Sie berechnen den verbleibenden finanziellen Spielraum, identifizieren mindestens zwei realistische Stellschrauben zum Sparen und vergleichen ihr Ergebnis mit den Beispielhaushalten aus dem Schufa-Material zur Einordnung.",
+      "tafelbild": {
+        "titel": "Der Haushaltsplan",
+        "boxen": [
+          {"ueberschrift": "Formel", "punkte": ["Einnahmen − fixe Ausgaben − variable Ausgaben = finanzieller Spielraum"]},
+          {"ueberschrift": "Fixkosten", "punkte": ["Miete", "Versicherungen", "Abos"]},
+          {"ueberschrift": "Variable Kosten", "punkte": ["Lebensmittel", "Freizeit", "Kleidung"]},
+          {"ueberschrift": "Strategien gegen Überschuldung", "punkte": ["Rücklage bilden", "Ausgaben priorisieren", "Verträge regelmäßig prüfen", "Faustregel Notgroschen: ca. 3 Nettogehälter"]}
+        ],
+        "merksatz": "Wer seinen Haushaltsplan kennt, verliert nicht die Kontrolle über seine Finanzen."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 10, "block": "B",
+      "titel": "Zahlungsarten im Überblick – Kriterien der Auswahl",
+      "kompetenzbezug": "Kompetenzerwartung 2 – geeignete Zahlungsarten situationsbezogen auswählen",
+      "lehrplan_inhalte": ["Überblick über wichtige Zahlungsarten", "Kriterien der Auswahl geeigneter Zahlungsarten (Sicherheit, Kosten, Zweckmäßigkeit)"],
+      "lernziel": "Die SuS unterscheiden gängige Zahlungsarten und wählen anhand der Kriterien Sicherheit, Kosten und Zweckmäßigkeit die im Einzelfall passende Zahlungsart begründet aus.",
+      "material": ["Zahlungsarten-1.docx/.pdf (ISB-Material, Ordner „Zahlungsarten“)", "Lastschriftverfahren.docx", "Kreditkarte Girocard.docx", "Unterschied Kreditkarte Debitkarte.docx", "Weitere Kriterien für die Auswahl von Zahlungsmitteln.docx/.pdf"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Gruppenpuzzle (Expertengruppen)",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Kurze Alltagsszene: „Du kaufst online ein Konzertticket, im Supermarkt Brötchen und bezahlst deine monatliche Handyrechnung. Welche Zahlungsart würdet ihr jeweils wählen – und warum?“ Spontane Zuruf-Sammlung und erste Systematisierung an der Tafel.",
+      "erarbeitung": "Im Gruppenpuzzle erarbeitet jede Expertengruppe mithilfe des Materials eine Zahlungsart (Barzahlung, Überweisung, Lastschrift, Kreditkarte, Girocard/Debitkarte): Funktionsweise, typische Einsatzsituation sowie Vor- und Nachteile bezüglich Sicherheit, Kosten und Zweckmäßigkeit. In neu gemischten Gruppen stellen sich die Expert:innen ihre Zahlungsart gegenseitig vor, sodass am Ende alle SuS eine vollständige Vergleichstabelle im Heft führen.",
+      "tafelbild": {
+        "titel": "Zahlungsarten im Vergleich",
+        "boxen": [
+          {"ueberschrift": "Barzahlung", "punkte": ["Sicherheit: kein Datenrisiko, Verlustrisiko", "Kosten: keine", "Einsatz: kleine Beträge, direkter Kauf"]},
+          {"ueberschrift": "Überweisung / Lastschrift", "punkte": ["Sicherheit: nachvollziehbar", "Kosten: meist gering", "Einsatz: Miete, Rechnungen, Abos"]},
+          {"ueberschrift": "Kreditkarte / Girocard", "punkte": ["Sicherheit: PIN/Sperrmöglichkeit", "Kosten: teils Jahresgebühr", "Einsatz: Online-Kauf, Reisen, größere Beträge"]}
+        ],
+        "merksatz": "Die passende Zahlungsart hängt vom Einzelfall ab – es gibt nicht die eine beste Lösung."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 11, "block": "B",
+      "titel": "Digitale Zahlungsverfahren – Kryptowährungen und der digitale Euro",
+      "kompetenzbezug": "Kompetenzerwartung 2 – aktuelle Entwicklungen im Zahlungsverkehr",
+      "lehrplan_inhalte": ["Aktuelle Entwicklungen im Zahlungsverkehr, insbesondere digitale Zahlungsverfahren: Möglichkeiten und Risiken"],
+      "lernziel": "Die SuS beschreiben Funktionsweise und Merkmale digitaler Zahlungsverfahren (Kryptowährungen, digitaler Euro) und bewerten in einer Pro-Contra-Diskussion deren Chancen und Risiken im Vergleich zu klassischem Geld.",
+      "material": ["Kryptowaehrung_Material.pdf (verkürzt) / _Loesungen.pdf", "Digitaler Euro.docx", "Sicherheit im digitalen Zahlungsverkehr.docx/.pdf", "zahlungsverhalten-in-deutschland-2023-data.pdf"],
+      "art_erarbeitung": "Diskussion", "sozialform": "Arbeitsteilige Textarbeit → Pro-Contra-Diskussion",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Eine Kurzstatistik aus dem Material „Zahlungsverhalten in Deutschland“ wird gezeigt: Wie hat sich der Anteil bargeldloser Zahlungen in den letzten Jahren entwickelt? Impulsfrage: „Wird es in zehn Jahren noch Bargeld geben?“ Die SuS positionieren sich spontan per Handzeichen (Zustimmung/Ablehnung).",
+      "erarbeitung": "Zwei Gruppenhälften erarbeiten arbeitsteilig je einen Themenschwerpunkt: Gruppe 1 „Kryptowährungen“ (Blockchain vereinfacht erklärt, Chancen: Dezentralität, Unabhängigkeit von Banken; Risiken: starke Kursschwankungen, Betrugsgefahr, hoher Energieverbrauch) und Gruppe 2 „Digitaler Euro“ (staatlich abgesichertes digitales Zentralbankgeld, Unterschied zu Kryptowährungen, Datenschutzfragen). Anschließend moderierte Pro-Contra-Diskussion im Plenum zur Leitfrage: „Sollten Kryptowährungen als normales Zahlungsmittel im Alltag akzeptiert werden?“",
+      "tafelbild": {
+        "titel": "Digitales Geld",
+        "boxen": [
+          {"ueberschrift": "Kryptowährung", "punkte": ["dezentral organisiert", "basiert auf Blockchain-Technologie", "stark schwankender Wert", "kaum staatlich reguliert"]},
+          {"ueberschrift": "Digitaler Euro", "punkte": ["von der Europäischen Zentralbank ausgegeben", "wertstabil", "staatlich reguliert und abgesichert"]},
+          {"ueberschrift": "Chancen / Risiken", "punkte": ["Chancen: schnell, weltweit verfügbar, innovativ", "Risiken: Kursrisiko, Betrug/Hacking, Datenschutz"]}
+        ],
+        "merksatz": "Digitale Zahlungsmittel unterscheiden sich stark in Sicherheit und staatlicher Absicherung."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 12, "block": "C",
+      "titel": "Geldfunktionen und Geldwertstabilität",
+      "kompetenzbezug": "Kompetenzerwartung 3 – Bedeutung der Geldwertstabilität vor dem Hintergrund der Funktionen des Geldes",
+      "lehrplan_inhalte": ["Geldwertstabilität", "Geldfunktionen"],
+      "lernziel": "Die SuS benennen die drei Funktionen des Geldes und erläutern, warum Geldwertstabilität die Voraussetzung dafür ist, dass Geld diese Funktionen dauerhaft erfüllen kann.",
+      "material": ["Eigenes Zusatzmaterial/aktuelle Inflationsdaten der Lehrkraft; inhaltlicher Anknüpfungspunkt an „Digitaler Euro“/„Kryptowährung“ aus Stunde 11"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Partnerarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Gedankenexperiment: „Stellt euch vor, die Preise würden sich jeden Monat verdoppeln. Würdet ihr euer Geld sofort ausgeben oder lieber sparen?“ Kurze Diskussion im Plenum, Überleitung zum Begriff der Geldwertstabilität.",
+      "erarbeitung": "Die SuS erarbeiten in Partnerarbeit anhand eines Impulstextes/der Tafelanschrift die drei Funktionen des Geldes (Tauschmittel, Recheneinheit/Wertmaßstab, Wertaufbewahrungsmittel) und ordnen jeder Funktion ein eigenes Alltagsbeispiel zu. In einer Fallanalyse untersuchen sie anschließend, was bei starker Inflation mit jeder der drei Funktionen geschieht (Anknüpfung z. B. an die deutsche Hyperinflation 1923 als historisches Extrembeispiel) und formulieren in eigenen Worten, warum Notenbanken Preisstabilität als zentrales Ziel verfolgen.",
+      "tafelbild": {
+        "titel": "Geld muss seinen Wert behalten",
+        "boxen": [
+          {"ueberschrift": "Drei Funktionen des Geldes", "punkte": ["Tauschmittel", "Recheneinheit (Wertmaßstab)", "Wertaufbewahrungsmittel"]},
+          {"ueberschrift": "Gefahr: Inflation", "punkte": ["Kaufkraftverlust", "Wertaufbewahrungsfunktion gefährdet", "Ersparnisse verlieren an Wert"]}
+        ],
+        "merksatz": "Nur stabiles Geld kann seine Funktionen dauerhaft erfüllen."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 13, "block": "C",
+      "titel": "Kriterien der Geldanlage – das magische Dreieck",
+      "kompetenzbezug": "Kompetenzerwartung 3 – grundlegende Kriterien der Geldanlage",
+      "lehrplan_inhalte": ["Kriterien der Geldanlage: Rentabilität, Liquidität, Sicherheit, ethische Aspekte"],
+      "lernziel": "Die SuS erläutern die Zielkriterien Rentabilität, Liquidität und Sicherheit (magisches Dreieck der Geldanlage) sowie ethische Aspekte und diskutieren deren Gewichtung bei eigenen Anlageentscheidungen.",
+      "material": ["Geldanlagen_Gym1_Material.pdf (verkürzt) / _Loesungen.pdf (Ordner „Geldanlage“)", "Arbeitsblatt_nachhaltigeFinanzen_SchulserviceJugendundFinanzen_Sep24.pdf"],
+      "art_erarbeitung": "Diskussion", "sozialform": "Kurzrecherche in Gruppen → Positionslinie/Diskussion",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Kurzumfrage im Raum: „Was würdet ihr mit 1.000 € machen, die ihr geschenkt bekommen habt – ausgeben, sparen oder anlegen?“ Sammlung der Antworten, Überleitung: Worauf kommt es bei einer „guten“ Geldanlage eigentlich an?",
+      "erarbeitung": "Mit dem Material „Geldanlagen“ erarbeiten die SuS in Gruppen die drei Ziele Rentabilität (Ertrag), Liquidität (Verfügbarkeit) und Sicherheit und stellen den Zielkonflikt zeichnerisch als Dreieck dar (alle drei Ziele sind nie gleichzeitig maximal erreichbar). Mit dem Material zu nachhaltigen Finanzen erarbeiten sie ergänzend, was „ethische/nachhaltige Geldanlage“ (z. B. ESG-Kriterien) bedeutet. Anschließend Positionslinie im Raum und Diskussion zur Leitfrage: „Sollte bei der Geldanlage Rendite oder ethische Verantwortung Vorrang haben?“ – jede Gruppe begründet ihre Position mit einem Beispiel.",
+      "tafelbild": {
+        "titel": "Das magische Dreieck der Geldanlage",
+        "boxen": [
+          {"ueberschrift": "Die drei Ecken", "punkte": ["Rentabilität (Ertrag)", "Liquidität (Verfügbarkeit)", "Sicherheit"]},
+          {"ueberschrift": "Zusatzkriterium", "punkte": ["Ethische/nachhaltige Aspekte (z. B. ESG)"]}
+        ],
+        "merksatz": "Alle drei Ziele gleichzeitig maximal zu erreichen ist nicht möglich – man muss abwägen."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 14, "block": "C",
+      "titel": "Anlageformen im Vergleich – vom Sparbuch bis zur Aktie",
+      "kompetenzbezug": "Kompetenzerwartung 3 – grundlegende Anlagearten",
+      "lehrplan_inhalte": ["Grundlegende Anlagearten: Spar- und Termineinlagen, Wertpapiere, Immobilien"],
+      "lernziel": "Die SuS ordnen verschiedene Anlageformen im magischen Dreieck ein und begründen deren jeweiliges Rendite-Risiko-Profil.",
+      "material": ["Geldanlagen_Gym1_Material.pdf", "boerse_frankfurt_von_bulle_und_baer.pdf / _aufgaben.pdf / Boerse_Gs_Loesungen.pdf", "ETF_Material.pdf (verkürzt) / _Loesungen.pdf", "Ausblick: Planspiel Börse.docx"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Stationenarbeit/Gruppenarbeit",
+      "zeiten": {"einstieg": 6, "erarbeitung": 24, "sicherung": 15},
+      "einstieg": "Kurzer Rückblick: „Welche drei Ziele hatten wir letzte Stunde kennengelernt?“ (Wiederholung magisches Dreieck). Impuls: „Wo würdet ihr Sparbuch, Aktie und Eigentumswohnung im Dreieck verorten?“",
+      "erarbeitung": "In Gruppen bearbeiten die SuS je eine Anlageform mithilfe des Materials (Spar-/Termineinlage, Aktien/ETFs mit „Börse Frankfurt – Von Bulle und Bär“ sowie ETF-Material, Immobilien) und erstellen ein Kurzprofil: Rendite, Risiko, Verfügbarkeit, Aufwand/Mindestanlage. Anschließend tragen alle Gruppen ihre Anlageform gemeinsam in das an der Tafel vorbereitete Dreieck ein und vergleichen die Positionen im Plenum.",
+      "tafelbild": {
+        "titel": "Anlageformen im magischen Dreieck",
+        "boxen": [
+          {"ueberschrift": "Sparbuch / Tagesgeld", "punkte": ["hohe Sicherheit & Liquidität", "niedrige Rendite"]},
+          {"ueberschrift": "Festgeld", "punkte": ["etwas höhere Rendite", "geringere Liquidität (Bindung)"]},
+          {"ueberschrift": "Aktien / ETFs", "punkte": ["potenziell hohe Rendite", "höheres Risiko, meist liquide"]},
+          {"ueberschrift": "Immobilien", "punkte": ["potenziell hohe Rendite", "gering liquide, hoher Kapitalbedarf"]}
+        ],
+        "merksatz": "Höhere Rendite ist meist nur mit höherem Risiko oder geringerer Verfügbarkeit zu erreichen."
+      },
+      "hausaufgabe": "Ausblick: Ankündigung des Planspiels Börse als praktische Vertiefung der Anlageformen (fakultativ als Projekt außerhalb des 18-Stunden-Kanons)."
+    },
+    {
+      "nr": 15, "block": "D",
+      "titel": "Das Marktmodell – Angebot und Nachfrage",
+      "kompetenzbezug": "Kompetenzerwartung 4 – Anwendung des Marktmodells auf konkrete Beispiele",
+      "lehrplan_inhalte": ["Marktmodell: Angebot, Nachfrage"],
+      "lernziel": "Die SuS erläutern die Angebots- und die Nachfragekurve sowie deren jeweilige Determinanten und stellen den Zusammenhang zwischen Preis und Menge grafisch dar.",
+      "material": ["Der-Marktmechanismus-Angebot-und-Nachfrage.pptx (Ordner „Preisbildung“)", "Preisbildung_Gym1_Material.pdf / _Loesungen.pdf", "Marktpreisbildung/Infotext.doc, Motivation.doc"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Partnerarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Kurzszenario: Auf einem Wochenmarkt gibt es an einem heißen Tag nur noch fünf Wassermelonen, aber zwanzig Käufer wollen eine. Impulsfrage: „Was passiert mit dem Preis – und warum?“ Erste Vermutungen werden gesammelt.",
+      "erarbeitung": "Mit dem Material „Preisbildung“ erarbeiten die SuS in Partnerarbeit: (1) Verlauf und Bedeutung der Nachfragekurve (fallend: je höher der Preis, desto geringer die nachgefragte Menge) und der Angebotskurve (steigend: je höher der Preis, desto größer die angebotene Menge), (2) je drei Einflussfaktoren auf die Nachfrage (z. B. Einkommen, Preise verwandter Güter, Vorlieben) und auf das Angebot (z. B. Produktionskosten, Technologie, Anzahl der Anbieter). Anschließend zeichnen die SuS selbstständig beide Kurven in ein vorbereitetes Preis-Mengen-Diagramm.",
+      "tafelbild": {
+        "titel": "Angebot und Nachfrage",
+        "boxen": [
+          {"ueberschrift": "Diagramm", "punkte": ["x-Achse: Menge, y-Achse: Preis", "Nachfragekurve: fallend", "Angebotskurve: steigend"]},
+          {"ueberschrift": "Nachfrage steigt bei …", "punkte": ["sinkendem Preis", "steigendem Einkommen", "höherer Beliebtheit"]},
+          {"ueberschrift": "Angebot steigt bei …", "punkte": ["steigendem Preis", "sinkenden Produktionskosten", "mehr Anbietern"]}
+        ],
+        "merksatz": "Angebot und Nachfrage reagieren gegensätzlich auf den Preis."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 16, "block": "D",
+      "titel": "Der Gleichgewichtspreis – wie sich Preise auf dem Markt bilden",
+      "kompetenzbezug": "Kompetenzerwartung 4 – Anwendung des Marktmodells auf konkrete Beispiele",
+      "lehrplan_inhalte": ["Marktmodell: Gleichgewichtspreis"],
+      "lernziel": "Die SuS bestimmen den Gleichgewichtspreis grafisch und rechnerisch aus Angebots- und Nachfragetabellen und erläutern den Ausgleichsmechanismus bei Angebots- bzw. Nachfrageüberhang.",
+      "material": ["Marktpreisbildung/Vorlage_Gleichgewicht.doc, Vorlage_Überhang.doc", "Arbeitsblatt.doc / Arbeitsblatt_Lösung.doc", "Tafelbild.doc (als Vorlage/Vergleich)"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Einzel-/Partnerarbeit",
+      "zeiten": {"einstieg": 6, "erarbeitung": 24, "sicherung": 15},
+      "einstieg": "Rückblick: „Wir hatten letzte Stunde die Angebots- und die Nachfragekurve kennengelernt – was passiert, wenn wir beide Kurven in ein gemeinsames Diagramm zeichnen?“ Kurze Vermutungen werden gesammelt.",
+      "erarbeitung": "Mit den Vorlagen „Gleichgewicht“ und „Überhang“ ermitteln die SuS anhand vorgegebener Angebots-/Nachfragetabellen (verschiedene Preise mit zugehörigen Mengen) den Gleichgewichtspreis als Schnittpunkt beider Kurven zeichnerisch. In einer Transferaufgabe untersuchen sie anschließend, was am Markt passiert, wenn der tatsächliche Preis über bzw. unter dem Gleichgewichtspreis liegt (Angebotsüberhang/Überschuss bzw. Nachfrageüberhang/Mangel) und wie der Preis in der Folge reagiert.",
+      "tafelbild": {
+        "titel": "Der Gleichgewichtspreis",
+        "boxen": [
+          {"ueberschrift": "Diagramm", "punkte": ["Schnittpunkt von Angebots- und Nachfragekurve", "= Gleichgewichtspreis und -menge"]},
+          {"ueberschrift": "Preis zu hoch", "punkte": ["Angebotsüberhang (Überschuss)", "→ Preis sinkt"]},
+          {"ueberschrift": "Preis zu niedrig", "punkte": ["Nachfrageüberhang (Mangel)", "→ Preis steigt"]}
+        ],
+        "merksatz": "Der Markt tendiert von selbst zum Gleichgewichtspreis – dieser Mechanismus heißt Koordinationsfunktion."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 17, "block": "D",
+      "titel": "Veränderungen von Angebot und Nachfrage – Ursachen und Wirkungen auf den Preis",
+      "kompetenzbezug": "Kompetenzerwartung 4 – Anwendung des Marktmodells auf konkrete Beispiele",
+      "lehrplan_inhalte": ["Marktmodell: Angebot, Nachfrage (Anwendung auf reale Beispiele)"],
+      "lernziel": "Die SuS erklären anhand realer Beispiele (u. a. Kraftstoffmarkt, Fernbuspreise), wie sich Verschiebungen der Angebots- oder der Nachfragekurve auf Preis und Menge auswirken.",
+      "material": ["Veraenderung_Angebot_Nachfrage_Material.pdf (Flixbus) / _Loesungen.pdf", "Bsp.Benzinmarkt.mp4", "Beispiele für Preisentwicklungen.docx"],
+      "art_erarbeitung": "Arbeitsauftrag", "sozialform": "Gruppenarbeit",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Kurzer Videoausschnitt bzw. Beschreibung aus „Bsp. Benzinmarkt“ (z. B. Preisanstieg an Feiertagen oder bei Raffinerie-Ausfällen). Impulsfrage: „Warum schwankt der Benzinpreis so stark – hat sich hier eher das Angebot oder die Nachfrage verändert?“",
+      "erarbeitung": "In Gruppen bearbeiten die SuS je ein Fallbeispiel mithilfe des Materials (Flixbus-Preise zu Stoßzeiten, Benzinpreis bei Raffinerieausfall, saisonale Nachfrage z. B. bei Ferienreisen): Sie bestimmen, ob sich Angebot oder Nachfrage verschoben hat, zeichnen die Verschiebung der jeweiligen Kurve in ein vorbereitetes Diagramm ein und leiten die Auswirkung auf Preis und Menge ab. Die Ergebnisse werden auf Plakaten festgehalten und kurz im Plenum vorgestellt.",
+      "tafelbild": {
+        "titel": "Verschiebung von Angebot und Nachfrage",
+        "boxen": [
+          {"ueberschrift": "Nachfrage steigt", "punkte": ["Kurve verschiebt sich nach rechts", "→ Preis und Menge steigen"]},
+          {"ueberschrift": "Angebot sinkt", "punkte": ["Kurve verschiebt sich nach links", "→ Preis steigt, Menge sinkt"]},
+          {"ueberschrift": "Unsere Beispiele", "punkte": ["Flixbus: Nachfrageeffekt", "Benzinmarkt: Angebotseffekt"]}
+        ],
+        "merksatz": "Nicht der Punkt auf der Kurve, sondern die ganze Kurve kann sich verschieben."
+      },
+      "hausaufgabe": null
+    },
+    {
+      "nr": 18, "block": "D",
+      "titel": "Prämissen des Marktmodells und die Koordinationsfunktion von Märkten",
+      "kompetenzbezug": "Kompetenzerwartung 4 – Prämissen des Marktmodells mit der Realität kontrastieren",
+      "lehrplan_inhalte": ["Prämissen des Marktmodells", "Koordinationsfunktion von Märkten"],
+      "lernziel": "Die SuS benennen die Prämissen des vollkommenen Marktes, kontrastieren diese kritisch mit der Realität und fassen die Koordinationsfunktion von Märkten als Abschluss des Themenblocks zusammen.",
+      "material": ["Preisbildung-auf-dem-vollkommenen-Markt.pptx", "Marktmodell vollkommener Markt.docx", "Kontrastbeispiel: Bsp.Drogenmarkt.mp4 (unvollkommener/illegaler Markt)"],
+      "art_erarbeitung": "Diskussion", "sozialform": "Gruppenarbeit → Plenumsdiskussion",
+      "zeiten": {"einstieg": 8, "erarbeitung": 22, "sicherung": 15},
+      "einstieg": "Impuls: „Wir haben die letzten drei Stunden mit einem vereinfachten Marktmodell gearbeitet. Stimmt dieses Modell eigentlich mit der Wirklichkeit überein?“ Die SuS äußern erste Zweifel bzw. eigene Beobachtungen aus dem Alltag.",
+      "erarbeitung": "In Kleingruppen erarbeiten die SuS die klassischen Prämissen des vollkommenen Marktes (u. a. vollständige Markttransparenz, Homogenität der Güter, unendlich schnelle Reaktionsgeschwindigkeit, keine persönlichen Präferenzen, viele Anbieter/Nachfrager ohne Marktmacht) und suchen für jede Prämisse ein Gegenbeispiel aus der Realität (z. B. Markenpräferenzen, Informationsasymmetrien, wenige große Anbieter). In der abschließenden Plenumsdiskussion wird die Leitfrage „Ist das Marktmodell trotz seiner Vereinfachungen nützlich?“ diskutiert – unter Rückgriff auf alle bisherigen Marktbeispiele des Themenblocks sowie das Kontrastbeispiel eines stark regulierten bzw. illegalen Marktes (Drogenmarkt), der zeigt, dass sich Preise auch ohne „normale“ Rahmenbedingungen bilden.",
+      "tafelbild": {
+        "titel": "Modell und Realität",
+        "boxen": [
+          {"ueberschrift": "Prämisse des Modells → Realität", "punkte": ["Markttransparenz → Informationsasymmetrien", "homogene Güter → Markenvielfalt", "viele kleine Anbieter → Marktmacht einzelner Konzerne", "sofortige Reaktion → Trägheit, Verträge"]},
+          {"ueberschrift": "Koordinationsfunktion von Märkten", "punkte": ["Preise lenken Angebot und Nachfrage aufeinander zu", "– ganz ohne zentrale Steuerung"]}
+        ],
+        "merksatz": "Das Marktmodell ist eine Vereinfachung der Realität – aber es erklärt, wie Preise als Knappheitssignal wirken und Angebot und Nachfrage koordinieren. (Abschluss von Lernbereich 1 – Ausblick auf Lernbereich 2: Recht als Handlungsrahmen)"
+      },
+      "hausaufgabe": null
+    }
+  ]
+}
+
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("lessons-data").textContent);
+  var STUNDEN = DATA.stunden;
+  var KURS = DATA.kurs;
+  var BLOCK_COLOR = {A:"var(--s1)", B:"var(--s2)", C:"var(--s3)", D:"var(--s4)"};
+  var BLOCK_COLOR_HEX_LIGHT = {A:"#2a78d6", B:"#eb6834", C:"#1baf7a", D:"#eda100"};
+
+  var state = { view: "overview", lessonNr: null, taught: {}, query: "" };
+
+  // ---- persistence (per-viewer convenience only) ----
+  function loadTaught(){
+    try{
+      var raw = localStorage.getItem("wr10-oek-taught");
+      if(raw) state.taught = JSON.parse(raw) || {};
+    }catch(e){ state.taught = {}; }
+  }
+  function saveTaught(){
+    try{ localStorage.setItem("wr10-oek-taught", JSON.stringify(state.taught)); }catch(e){}
+  }
+  loadTaught();
+
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+    });
+  }
+
+  function findLesson(nr){
+    for(var i=0;i<STUNDEN.length;i++){ if(STUNDEN[i].nr === nr) return STUNDEN[i]; }
+    return null;
+  }
+
+  function blockTitle(id){
+    for(var i=0;i<KURS.bloecke.length;i++){ if(KURS.bloecke[i].id===id) return KURS.bloecke[i]; }
+    return null;
+  }
+
+  function taughtCount(){
+    var c=0; STUNDEN.forEach(function(s){ if(state.taught[s.nr]) c++; }); return c;
+  }
+
+  function matchesQuery(s, q){
+    if(!q) return true;
+    q = q.toLowerCase();
+    var hay = [s.titel, s.kompetenzbezug, s.lernziel].concat(s.lehrplan_inhalte||[]).join(" ").toLowerCase();
+    return hay.indexOf(q) !== -1;
+  }
+
+  // ---------------- Sidebar ----------------
+  function renderSidebar(){
+    var nav = document.getElementById("navList");
+    var html = "";
+    KURS.bloecke.forEach(function(b){
+      var items = STUNDEN.filter(function(s){ return s.block===b.id; });
+      var visible = items.filter(function(s){ return matchesQuery(s, state.query); });
+      if(state.query && visible.length===0) return;
+      html += '<div class="block-group">';
+      html += '<div class="block-head"><span class="block-dot" style="background:'+BLOCK_COLOR[b.id]+'"></span>Block '+b.id+' · '+esc(b.titel)+'</div>';
+      (state.query ? visible : items).forEach(function(s){
+        var active = (state.view==="lesson" && state.lessonNr===s.nr);
+        var done = !!state.taught[s.nr];
+        html += '<button class="lesson-item'+(active?" active":"")+(done?" done":"")+'" data-nr="'+s.nr+'">'
+          + '<span class="lesson-nr">'+String(s.nr).padStart(2,"0")+'</span>'
+          + '<span class="lesson-title">'+esc(s.titel)+'</span>'
+          + '<span class="lesson-check'+(done?" done":"")+'" data-check="'+s.nr+'"></span>'
+          + '</button>';
+      });
+      html += '</div>';
+    });
+    nav.innerHTML = html;
+
+    nav.querySelectorAll(".lesson-item").forEach(function(btn){
+      btn.addEventListener("click", function(e){
+        if(e.target.hasAttribute("data-check")){
+          var nr = +e.target.getAttribute("data-check");
+          state.taught[nr] = !state.taught[nr];
+          saveTaught();
+          renderSidebar(); if(state.view==="lesson" && state.lessonNr===nr) renderMain();
+          return;
+        }
+        var nr = +btn.getAttribute("data-nr");
+        state.view="lesson"; state.lessonNr=nr;
+        renderSidebar(); renderMain();
+        closeSidebarMobile();
+        window.scrollTo({top:0,behavior:"smooth"});
+      });
+    });
+
+    document.getElementById("overviewBtn").classList.toggle("active", state.view==="overview");
+  }
+
+  // ---------------- Overview ----------------
+  function renderOverview(){
+    var total = STUNDEN.length;
+    var chartSegs = "";
+    var legend = "";
+    KURS.bloecke.forEach(function(b){
+      var count = STUNDEN.filter(function(s){return s.block===b.id;}).length;
+      var pct = (count/total*100).toFixed(1);
+      chartSegs += '<div class="chart-seg" style="width:'+pct+'%; background:'+BLOCK_COLOR[b.id]+'">'+count+'</div>';
+      legend += '<div class="legend-item"><span class="legend-swatch" style="background:'+BLOCK_COLOR[b.id]+'"></span>Block '+b.id+' — '+esc(b.titel)+' ('+count+' Std.)</div>';
+    });
+
+    var kompHtml = KURS.kompetenzerwartungen.map(function(k){ return "<li>"+esc(k)+"</li>"; }).join("");
+
+    var html = ''
+    +'<div class="hero">'
+      +'<div class="eyebrow">Unterrichtsskript · '+esc(KURS.fach)+' · Jahrgangsstufe '+esc(KURS.jahrgangsstufe)+'</div>'
+      +'<h1>Ökonomisches Handeln auf dem Markt</h1>'
+      +'<p class="lead">18 Unterrichtseinheiten à 45 Minuten für den Lehrplan-Lernbereich „'+esc(KURS.lernbereich)+'". Jede Stunde führt in ein neues Thema ein, lässt die Klasse selbstständig arbeiten oder diskutieren und sichert die Ergebnisse in einem gemeinsamen Tafelbild.</p>'
+      +'<div class="meta-row">'
+        +'<div><b>Lehrplangrundlage:</b>&nbsp;'+esc(KURS.grundlage)+'</div>'
+        +'<div><b>Material-Ordner:</b>&nbsp;'+esc(KURS.ordner)+'</div>'
+      +'</div>'
+    +'</div>'
+
+    +'<div class="card">'
+      +'<h2>Aufbau jeder Unterrichtseinheit</h2>'
+      +'<div class="structure-row">'
+        +'<div class="structure-item"><div class="num">01</div><h3>Einstieg</h3><p>Ein Impuls, Beispiel oder eine Fallgeschichte führt in das neue Thema der Stunde ein.</p></div>'
+        +'<div class="structure-item"><div class="num">02</div><h3>Arbeitsauftrag oder Diskussion</h3><p>Die Klasse erarbeitet die Inhalte selbstständig oder führt eine moderierte Diskussion.</p></div>'
+        +'<div class="structure-item"><div class="num">03</div><h3>Tafelbild</h3><p>Ein gemeinsames Tafelbild mit Merksatz sichert die Ergebnisse der Stunde.</p></div>'
+      +'</div>'
+    +'</div>'
+
+    +'<div class="grid-2">'
+      +'<div class="card">'
+        +'<h2>Kompetenzerwartungen des Lehrplans</h2>'
+        +'<ul>'+kompHtml+'</ul>'
+      +'</div>'
+      +'<div class="card">'
+        +'<h2>Stundenverteilung nach Themenblock</h2>'
+        +'<div class="chart-bar">'+chartSegs+'</div>'
+        +'<div class="legend-row">'+legend+'</div>'
+      +'</div>'
+    +'</div>';
+
+    document.getElementById("main").innerHTML = html;
+  }
+
+  // ---------------- Lesson detail ----------------
+  function materialIcon(){
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>';
+  }
+
+  function renderTafelbild(tb){
+    var boxes = tb.boxen.map(function(box){
+      var lis = box.punkte.map(function(p){ return "<li>"+esc(p)+"</li>"; }).join("");
+      return '<div class="tafel-box"><h4>'+esc(box.ueberschrift)+'</h4><ul>'+lis+'</ul></div>';
+    }).join("");
+    return ''
+    +'<div class="tafelbild-wrap">'
+      +'<div class="tafelbild-title">◱ Tafelbild — „'+esc(tb.titel)+'"</div>'
+      +'<div class="tafel-boxes">'+boxes+'</div>'
+      +'<div class="merksatz"><b>Merksatz:</b> '+esc(tb.merksatz)+'</div>'
+    +'</div>';
+  }
+
+  function renderLesson(nr){
+    var s = findLesson(nr);
+    if(!s){ renderOverview(); return; }
+    var b = blockTitle(s.block);
+    var done = !!state.taught[s.nr];
+    var artBadgeClass = s.art_erarbeitung === "Diskussion" ? "disk" : "arbeit";
+    var materialHtml = s.material.map(function(m){
+      return '<div class="material-item">'+materialIcon()+'<span>'+esc(m)+'</span></div>';
+    }).join("");
+
+    var idx = STUNDEN.findIndex(function(x){return x.nr===nr;});
+    var prev = idx>0 ? STUNDEN[idx-1] : null;
+    var next = idx<STUNDEN.length-1 ? STUNDEN[idx+1] : null;
+
+    var html = ''
+    +'<div class="lesson-head">'
+      +'<div class="lesson-head-left">'
+        +'<div class="block-tag"><span class="block-dot" style="background:'+BLOCK_COLOR[s.block]+'"></span>Block '+s.block+' · '+esc(b.titel)+' · Stunde '+s.nr+' / 18</div>'
+        +'<h1>'+esc(s.titel)+'</h1>'
+      +'</div>'
+      +'<button class="taught-toggle'+(done?" on":"")+'" id="taughtBtn">'+(done?"✓ Unterrichtet":"Als unterrichtet markieren")+'</button>'
+    +'</div>'
+
+    +'<div class="time-chips">'
+      +'<span class="badge '+artBadgeClass+'">'+esc(s.art_erarbeitung)+'</span>'
+      +'<span class="time-chip">Einstieg '+s.zeiten.einstieg+' min</span>'
+      +'<span class="time-chip">'+esc(s.art_erarbeitung)+' '+s.zeiten.erarbeitung+' min</span>'
+      +'<span class="time-chip">Sicherung '+s.zeiten.sicherung+' min</span>'
+      +'<span class="time-chip">= 45 min</span>'
+    +'</div>'
+
+    +'<div class="card" style="margin-top:22px;">'
+      +'<div class="info-card">'
+        +'<dt>Kompetenzbezug</dt><dd>'+esc(s.kompetenzbezug)+'</dd>'
+        +'<dt>Lehrplan-Inhalte</dt><dd>'+esc(s.lehrplan_inhalte.join(" · "))+'</dd>'
+        +'<dt>Lernziel</dt><dd>'+esc(s.lernziel)+'</dd>'
+        +'<dt>Sozialform</dt><dd>'+esc(s.sozialform)+'</dd>'
+        +'<dt>Material im Ordner</dt><dd><div class="material-list">'+materialHtml+'</div></dd>'
+      +'</div>'
+    +'</div>'
+
+    +'<div class="card">'
+      +'<h2>Stundenverlauf</h2>'
+      +'<div class="flow">'
+        +'<div class="flow-step">'
+          +'<div class="flow-rail"><div class="flow-dot">'+s.zeiten.einstieg+'&rsquo;</div><div class="flow-line"></div></div>'
+          +'<div class="flow-body"><h3>Einstieg</h3><div class="flow-meta">Hinführung zum Thema</div><p>'+esc(s.einstieg)+'</p></div>'
+        +'</div>'
+        +'<div class="flow-step">'
+          +'<div class="flow-rail"><div class="flow-dot">'+s.zeiten.erarbeitung+'&rsquo;</div><div class="flow-line"></div></div>'
+          +'<div class="flow-body"><h3>'+esc(s.art_erarbeitung)+'</h3><div class="flow-meta">'+esc(s.sozialform)+'</div><p>'+esc(s.erarbeitung)+'</p></div>'
+        +'</div>'
+        +'<div class="flow-step">'
+          +'<div class="flow-rail"><div class="flow-dot">'+s.zeiten.sicherung+'&rsquo;</div></div>'
+          +'<div class="flow-body"><h3>Sicherung</h3><div class="flow-meta">Ergebnissicherung im Tafelbild</div>'+renderTafelbild(s.tafelbild)+'</div>'
+        +'</div>'
+      +'</div>'
+      +(s.hausaufgabe ? '<div class="hw"><b>Hausaufgabe/Ausblick:</b> '+esc(s.hausaufgabe)+'</div>' : '')
+    +'</div>'
+
+    +'<div class="pager">'
+      +'<button id="prevBtn" '+(prev?"":"disabled")+'>'+(prev?('<div class="lbl">← Vorherige Stunde</div>'+esc(prev.titel)):'')+'</button>'
+      +'<button id="nextBtn" class="next" '+(next?"":"disabled")+'>'+(next?('<div class="lbl">Nächste Stunde →</div>'+esc(next.titel)):'')+'</button>'
+    +'</div>';
+
+    document.getElementById("main").innerHTML = html;
+
+    var taughtBtn = document.getElementById("taughtBtn");
+    if(taughtBtn) taughtBtn.addEventListener("click", function(){
+      state.taught[s.nr] = !state.taught[s.nr];
+      saveTaught(); renderSidebar(); renderLesson(s.nr);
+    });
+    var prevBtn = document.getElementById("prevBtn");
+    if(prevBtn && prev) prevBtn.addEventListener("click", function(){ goTo(prev.nr); });
+    var nextBtn = document.getElementById("nextBtn");
+    if(nextBtn && next) nextBtn.addEventListener("click", function(){ goTo(next.nr); });
+  }
+
+  function goTo(nr){
+    state.view="lesson"; state.lessonNr=nr;
+    renderSidebar(); renderMain();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function renderMain(){
+    if(state.view==="lesson" && state.lessonNr!=null){ renderLesson(state.lessonNr); }
+    else{ state.view="overview"; renderOverview(); }
+    updateProgress();
+  }
+
+  function updateProgress(){
+    var total = STUNDEN.length, done = taughtCount();
+    var pct = total ? (done/total*100) : 0;
+    var fill = document.getElementById("progressFill");
+    var label = document.getElementById("progressLabel");
+    if(fill) fill.style.width = pct+"%";
+    if(label) label.textContent = done+" / "+total+" Std.";
+  }
+
+  function closeSidebarMobile(){
+    document.getElementById("sidebar").classList.remove("open");
+  }
+
+  // ---------------- Topbar (built once) ----------------
+  function buildTopbar(){
+    var bar = document.createElement("div");
+    bar.className = "topbar";
+    bar.innerHTML = ''
+      +'<button class="menu-btn" id="menuBtn" aria-label="Menü">☰</button>'
+      +'<div class="brand"><span class="eyebrow">WR 10</span><h1>Ökonomisches Handeln auf dem Markt</h1></div>'
+      +'<div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div><span class="progress-label mono" id="progressLabel">0 / 18 Std.</span></div>';
+    document.body.insertBefore(bar, document.querySelector(".app"));
+    document.getElementById("menuBtn").addEventListener("click", function(){
+      document.getElementById("sidebar").classList.toggle("open");
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    buildTopbar();
+    document.getElementById("overviewBtn").addEventListener("click", function(){
+      state.view="overview"; state.lessonNr=null;
+      renderSidebar(); renderMain(); closeSidebarMobile();
+      window.scrollTo({top:0,behavior:"smooth"});
+    });
+    document.getElementById("search").addEventListener("input", function(e){
+      state.query = e.target.value.trim();
+      renderSidebar();
+    });
+    renderSidebar();
+    renderMain();
+  });
+})();
+</script>
